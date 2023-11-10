@@ -1,6 +1,8 @@
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const User = require("../userModel"); // ユーザーモデルをインポートするか、適切な方法に置き換えてください
+const express = require("express");
+const router = express.Router();
 
 // Passportの設定
 passport.use(
@@ -34,7 +36,7 @@ passport.deserializeUser((id, done) => {
 });
 
 // ログインのルートハンドラー
-app.post(
+router.post(
   "/login",
   passport.authenticate("local", {
     successRedirect: "/dashboard",
@@ -44,7 +46,7 @@ app.post(
 );
 
 // ログアウトのルートハンドラー
-app.get("/logout", (req, res) => {
+router.get("/logout", (req, res) => {
   req.logout(); // セッションからユーザーを削除
   res.redirect("/");
 });
