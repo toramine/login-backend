@@ -45,16 +45,17 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    created_at: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: Sequelize.literal("datetime('now')"),
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: Sequelize.literal("datetime('now')"),
-    },
+    // created_at: {
+    //   type: DataTypes.DATE,
+    //   allowNull: false,
+    //   defaultValue: Sequelize.literal("datetime('now')"),
+    // },
+    // updated_at: {
+    //   type: DataTypes.DATE,
+    //   allowNull: false,
+    //   defaultValue: Sequelize.literal("datetime('now')"),
+    // },
   });
+
   return User;
 };

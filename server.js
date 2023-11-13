@@ -5,9 +5,11 @@ const app = express();
 const cors = require("cors");
 const port = 3060;
 const { Sequelize } = require("sequelize");
-// const sessionRoute = require("./routes/sessionRoute");
-// const userRoute = require("./routes/userRoute");
+const sessionRoute = require("./routes/sessionRoute");
+const userRoute = require("./routes/userRoute");
 const path = require("path");
+
+require("dotenv").config();
 
 // SQLiteデータベースファイルのパスを指定
 const dbPath = path.resolve(__dirname, "mydatabase.sqlite");
@@ -42,8 +44,8 @@ app.use(
 app.use(cors());
 app.use(express.json());
 app.use(helmet());
-// app.use("/sessionRoute", sessionRoute);
-// app.use("/userRoute", userRoute);
+app.use("/sessionRoute", sessionRoute);
+app.use("/userRoute", userRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello World");

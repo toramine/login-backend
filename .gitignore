@@ -131,3 +131,5 @@ dist
 
 .env
 mydatabase.sqlite
+config
+migrations

@@ -50,3 +50,5 @@ router.get("/logout", (req, res) => {
   req.logout(); // セッションからユーザーを削除
   res.redirect("/");
 });
+
+module.exports = router;
