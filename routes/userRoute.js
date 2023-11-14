@@ -8,6 +8,7 @@ const {
   getUserByUsername,
   updateUser,
   deleteUser,
+  getAllUsers,
 } = require("../userController");
 
 // ユーザーの作成
@@ -18,6 +19,16 @@ router.post("/create", async (req, res) => {
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: "Error creating user" });
+  }
+});
+
+// GET /users
+router.get("/", async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Error getting users" });
   }
 });
 

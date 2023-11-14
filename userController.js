@@ -11,6 +11,16 @@ const createUser = async (userData) => {
   }
 };
 
+const getAllUsers = async () => {
+  try {
+    const users = await User.findAll();
+    return users;
+  } catch (error) {
+    console.error("Error getting users:", error);
+    throw error;
+  }
+};
+
 // ユーザーの読み取り（IDによる検索）
 const getUserById = async (userId) => {
   try {
@@ -71,4 +81,5 @@ module.exports = {
   getUserByUsername,
   updateUser,
   deleteUser,
+  getAllUsers,
 };

@@ -8,16 +8,11 @@ const { Sequelize } = require("sequelize");
 const sessionRoute = require("./routes/sessionRoute");
 const userRoute = require("./routes/userRoute");
 const path = require("path");
-
 require("dotenv").config();
 
-// SQLiteデータベースファイルのパスを指定
-const dbPath = path.resolve(__dirname, "mydatabase.sqlite");
-// ミドルウェア
-// Sequelizeの初期化
 const sequelize = new Sequelize({
   dialect: "sqlite", // データベースの種類をsqliteに設定
-  storage: dbPath, // SQLiteデータベースファイルのパス
+  storage: "./mydatabase.sqlite", // SQLiteデータベースファイルのパス
 });
 
 // データベースに接続
