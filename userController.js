@@ -1,9 +1,18 @@
 const User = require("./userModel");
+const bcrypt = require("bcrypt");
 
 // ユーザーの作成
 const createUser = async (userData) => {
   try {
+    // パスワードをハッシュ化
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+    // ハッシュ化されたパスワードを userData にセット
+    userData.password = hashedPassword;
+
+    // データベースにユーザーを作成
     const user = await User.create(userData);
+
     return user;
   } catch (error) {
     console.error("Error creating user:", error);
