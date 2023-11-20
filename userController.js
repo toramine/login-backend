@@ -56,7 +56,15 @@ const getUserByUsername = async (username) => {
 const updateUser = async (userId, updates) => {
   try {
     const user = await getUserById(userId);
+
     if (user) {
+      // Check if updates include the 'password' field
+      if (updates.password) {
+        // Hash the new password before updating
+        const hashedPassword = await bcrypt.hash(updates.password, 10);
+        updates.password = hashedPassword;
+      }
+
       await user.update(updates);
       return user;
     } else {
