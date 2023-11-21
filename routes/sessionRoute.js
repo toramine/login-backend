@@ -1,9 +1,12 @@
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
-const User = require("../userModel"); // ユーザーモデルをインポートするか、適切な方法に置き換えてください
+const jwt = require("jsonwebtoken"); // JWTの利用
+
+const User = require("../userModel");
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
+require("dotenv").config();
 
 // パスワードの検証
 const validatePassword = async (user, password) => {
@@ -14,14 +17,12 @@ const validatePassword = async (user, password) => {
 passport.use(
   new LocalStrategy(async (username, password, done) => {
     try {
-      // ユーザーの検索
       const user = await User.findOne({ username });
 
       if (!user) {
         return done(null, false, { message: "ユーザーが見つかりません" });
       }
 
-      // パスワードの検証
       const isValidPassword = await validatePassword(user, password);
 
       if (!isValidPassword) {
@@ -36,31 +37,31 @@ passport.use(
   })
 );
 
-passport.serializeUser((user, done) => {
-  // ユーザーをセッションに保存（ユーザーIDを保存）
-  done(null, user.id);
-});
-
-passport.deserializeUser((id, done) => {
-  // セッションからユーザーを取得
-  User.findById(id, (err, user) => {
-    done(err, user);
-  });
-});
-
+// JWTのシークレットキー
+const jwtSecretKey = process.env.JWT_SECRET;
 // ログインのルートハンドラー
-router.post(
-  "/login",
-  passport.authenticate("local", {
-    successRedirect: "/dashboard",
-    failureRedirect: "/login",
-    failureFlash: true,
-  })
-);
+router.post("/login", (req, res, next) => {
+  passport.authenticate("local", { session: false }, (err, user, info) => {
+    if (err) {
+      return next(err);
+    }
+    if (!user) {
+      return res.status(401).json({ success: false, message: info.message });
+    }
+
+    // JWTの生成
+    const token = jwt.sign({ userId: user.id }, jwtSecretKey, {
+      expiresIn: "1h", // トークンの有効期限
+    });
+
+    // トークンをクライアントに送信
+    res.status(200).json({ success: true, token });
+  })(req, res, next);
+});
 
 // ログアウトのルートハンドラー
 router.get("/logout", (req, res) => {
-  req.logout(); // セッションからユーザーを削除
+  // ログアウト処理（クライアントサイドでトークンを破棄するなど）
   res.redirect("/");
 });
 

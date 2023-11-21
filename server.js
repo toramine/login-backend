@@ -1,5 +1,4 @@
 const express = require("express");
-const session = require("express-session");
 const helmet = require("helmet");
 const app = express();
 const cors = require("cors");
@@ -24,17 +23,6 @@ sequelize
   .catch((err) => {
     console.error("Error connecting to SQLite:", err);
   });
-
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET, // セッションデータの暗号化に使用するキー
-    resave: false,
-    saveUninitialized: true,
-    // cookie: {
-    //   maxAge: 3600000, // 1時間
-    // },
-  })
-);
 
 app.use(cors());
 app.use(express.json());
