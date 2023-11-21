@@ -3,23 +3,36 @@ const LocalStrategy = require("passport-local").Strategy;
 const User = require("../userModel"); // ユーザーモデルをインポートするか、適切な方法に置き換えてください
 const express = require("express");
 const router = express.Router();
+const bcrypt = require("bcrypt");
 
-// Passportの設定
+// パスワードの検証
+const validatePassword = async (user, password) => {
+  return await bcrypt.compare(password, user.password);
+};
+
+// ローカルストラテジーの設定
 passport.use(
-  new LocalStrategy((username, password, done) => {
-    // ユーザー認証ロジックを実装し、認証に成功した場合、ユーザーオブジェクトを返します
-    User.findOne({ username }, (err, user) => {
-      if (err) {
-        return done(err);
-      }
+  new LocalStrategy(async (username, password, done) => {
+    try {
+      // ユーザーの検索
+      const user = await User.findOne({ username });
+
       if (!user) {
         return done(null, false, { message: "ユーザーが見つかりません" });
       }
-      if (!user.validatePassword(password)) {
+
+      // パスワードの検証
+      const isValidPassword = await validatePassword(user, password);
+
+      if (!isValidPassword) {
         return done(null, false, { message: "パスワードが一致しません" });
       }
+
+      // 認証成功
       return done(null, user);
-    });
+    } catch (error) {
+      return done(error);
+    }
   })
 );
 

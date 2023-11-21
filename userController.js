@@ -1,12 +1,31 @@
 const User = require("./userModel");
+const bcrypt = require("bcrypt");
 
 // ユーザーの作成
 const createUser = async (userData) => {
   try {
+    // パスワードをハッシュ化
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+
+    // ハッシュ化されたパスワードを userData にセット
+    userData.password = hashedPassword;
+
+    // データベースにユーザーを作成
     const user = await User.create(userData);
+
     return user;
   } catch (error) {
     console.error("Error creating user:", error);
+    throw error;
+  }
+};
+
+const getAllUsers = async () => {
+  try {
+    const users = await User.findAll();
+    return users;
+  } catch (error) {
+    console.error("Error getting users:", error);
     throw error;
   }
 };
@@ -37,7 +56,15 @@ const getUserByUsername = async (username) => {
 const updateUser = async (userId, updates) => {
   try {
     const user = await getUserById(userId);
+
     if (user) {
+      // Check if updates include the 'password' field
+      if (updates.password) {
+        // Hash the new password before updating
+        const hashedPassword = await bcrypt.hash(updates.password, 10);
+        updates.password = hashedPassword;
+      }
+
       await user.update(updates);
       return user;
     } else {
@@ -71,4 +98,5 @@ module.exports = {
   getUserByUsername,
   updateUser,
   deleteUser,
+  getAllUsers,
 };
