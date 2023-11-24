@@ -15,8 +15,13 @@ passport.use(
   new LocalStrategy(async (username, password, done) => {
     try {
       // ユーザーの検索
-      const user = await User.findOne({ username });
-
+      console.log(username);
+      const user = await User.findOne({
+        where: {
+          username: username, // 検索したいユーザー名を指定
+        },
+      });
+      console.log(user);
       if (!user) {
         return done(null, false, { message: "ユーザーが見つかりません" });
       }
@@ -49,19 +54,48 @@ passport.deserializeUser((id, done) => {
 });
 
 // ログインのルートハンドラー
-router.post(
-  "/login",
-  passport.authenticate("local", {
-    successRedirect: "/dashboard",
-    failureRedirect: "/login",
-    failureFlash: true,
-  })
-);
+router.post("/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) {
+      // エラーが発生した場合の処理
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+    if (!user) {
+      // 認証失敗の場合の処理
+      return res.status(401).json({ message: "Authentication Failed" });
+    }
+    // 認証成功
+    req.logIn(user, (err) => {
+      if (err) {
+        // ログイン処理でエラーが発生した場合の処理
+        return res.status(500).json({ message: "Internal Server Error" });
+      }
+      // ログイン成功時のレスポンスを返す
+      console.log("ログインは成功");
+      req.session.save(() => {
+        // successRedirectin the callback here
+        return res
+          .status(200)
+          .json({ message: "Authentication Successful", user });
+      });
+    });
+  })(req, res, next);
+});
 
 // ログアウトのルートハンドラー
 router.get("/logout", (req, res) => {
   req.logout(); // セッションからユーザーを削除
-  res.redirect("/");
+  res.status(200).json({ message: "Logout Successful" });
+});
+
+router.get("/check-auth", (req, res) => {
+  if (req.isAuthenticated()) {
+    // 認証されている場合
+    res.status(200).json({ authenticated: true });
+  } else {
+    // 認証されていない場合
+    res.status(200).json({ authenticated: false });
+  }
 });
 
 module.exports = router;
