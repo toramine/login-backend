@@ -1,6 +1,7 @@
 // userRouter.js
 const express = require("express");
 const isAuthenticated = require("../isAuthenticated");
+const verifyToken = require("../verifyToken");
 
 const router = express.Router();
 const {
@@ -24,7 +25,7 @@ router.post("/create", async (req, res) => {
 });
 
 // GET /users
-router.get("/", isAuthenticated, async (req, res) => {
+router.get("/", verifyToken, async (req, res) => {
   try {
     const users = await getAllUsers();
     res.json(users);
@@ -34,7 +35,7 @@ router.get("/", isAuthenticated, async (req, res) => {
 });
 
 // ユーザーの読み取り（IDによる検索）
-router.get("/getById/:userId", isAuthenticated, async (req, res) => {
+router.get("/getById/:userId", verifyToken, async (req, res) => {
   const userId = req.params.userId;
   try {
     const user = await getUserById(userId);
@@ -45,7 +46,7 @@ router.get("/getById/:userId", isAuthenticated, async (req, res) => {
 });
 
 // ユーザーの読み取り（ユーザー名による検索）
-router.get("/getByUsername/:username", isAuthenticated, async (req, res) => {
+router.get("/getByUsername/:username", verifyToken, async (req, res) => {
   const username = req.params.username;
   try {
     const user = await getUserByUsername(username);
@@ -56,7 +57,7 @@ router.get("/getByUsername/:username", isAuthenticated, async (req, res) => {
 });
 
 // ユーザーの更新
-router.put("/update/:userId", isAuthenticated, async (req, res) => {
+router.put("/update/:userId", verifyToken, async (req, res) => {
   const userId = req.params.userId;
   const updates = req.body;
   try {
@@ -68,7 +69,7 @@ router.put("/update/:userId", isAuthenticated, async (req, res) => {
 });
 
 // ユーザーの削除
-router.delete("/delete/:userId", isAuthenticated, async (req, res) => {
+router.delete("/delete/:userId", verifyToken, async (req, res) => {
   const userId = req.params.userId;
   try {
     await deleteUser(userId);

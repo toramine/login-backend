@@ -5,6 +5,7 @@ module.exports = (req, res, next) => {
   } else {
     console.log(req.isAuthenticated());
     // 認証されていない場合はエラーを返すか、リダイレクトするなどの処理を行う
-    return res.status(200).json({ message: "Authentication false" });
+    // return res.status(200).json({ message: "Authentication false" });
+    return next();
   }
 };

@@ -1,39 +1,41 @@
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
-const User = require("../userModel"); // ユーザーモデルをインポートするか、適切な方法に置き換えてください
+const User = require("../userModel");
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
+require("dotenv").config();
+const {
+  getUserById,
+  getUserByUsername,
+} = require("../userController");
 
-// パスワードの検証
+require("dotenv").config();
+
+function generateAuthToken(user) {
+  const token = jwt.sign({ id: user.id, username: user.username }, process.env.SECRET_KEY);
+  return token;
+}
+
 const validatePassword = async (user, password) => {
   return await bcrypt.compare(password, user.password);
 };
 
-// ローカルストラテジーの設定
 passport.use(
   new LocalStrategy(async (username, password, done) => {
     try {
-      // ユーザーの検索
-      console.log(username);
-      const user = await User.findOne({
-        where: {
-          username: username, // 検索したいユーザー名を指定
-        },
-      });
-      console.log(user);
+      const user = await getUserByUsername(username);
       if (!user) {
-        return done(null, false, { message: "ユーザーが見つかりません" });
+        return done(null, false, { message: "User not found" });
       }
 
-      // パスワードの検証
       const isValidPassword = await validatePassword(user, password);
 
       if (!isValidPassword) {
-        return done(null, false, { message: "パスワードが一致しません" });
+        return done(null, false, { message: "Incorrect password" });
       }
-
-      // 認証成功
+      console.log(`LocalStrategy:${user}`);
       return done(null, user);
     } catch (error) {
       return done(error);
@@ -41,60 +43,56 @@ passport.use(
   })
 );
 
-passport.serializeUser((user, done) => {
-  // ユーザーをセッションに保存（ユーザーIDを保存）
-  done(null, user.id);
-});
+passport.serializeUser(function(user, cb) {
+  process.nextTick(function() {
+    console.log(`serializeUser:${user.id}, ${user.username}`);
 
-passport.deserializeUser((id, done) => {
-  // セッションからユーザーを取得
-  User.findById(id, (err, user) => {
-    done(err, user);
+    cb(null, { id: user.id, username: user.username });
   });
 });
 
-// ログインのルートハンドラー
-router.post("/login", (req, res, next) => {
-  passport.authenticate("local", (err, user, info) => {
-    if (err) {
-      // エラーが発生した場合の処理
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
-    if (!user) {
-      // 認証失敗の場合の処理
-      return res.status(401).json({ message: "Authentication Failed" });
-    }
-    // 認証成功
-    req.logIn(user, (err) => {
-      if (err) {
-        // ログイン処理でエラーが発生した場合の処理
-        return res.status(500).json({ message: "Internal Server Error" });
-      }
-      // ログイン成功時のレスポンスを返す
-      console.log("ログインは成功");
-      req.session.save(() => {
-        // successRedirectin the callback here
-        return res
-          .status(200)
-          .json({ message: "Authentication Successful", user });
-      });
-    });
-  })(req, res, next);
+passport.deserializeUser(function(user, cb) {
+  process.nextTick(function() {
+    return cb(null, user);
+  });
 });
 
-// ログアウトのルートハンドラー
+// passport.deserializeUser(async (id, done) => {
+//   await User.findById(id, (err, user) => {
+//     console.log(`deserializeUser:${id}`);
+//     done(err, user);
+//   });
+// });
+
+router.post("/login", passport.authenticate("local"), (req, res) => {
+  console.log(`authenticated:${req.isAuthenticated()}`);
+  // 認証成功時にトークンを生成し、クッキーに保存する
+  const token = generateAuthToken(req.user);
+  res.cookie('authToken', token, { httpOnly: true, secure: true, maxAge: 3600000 }); // 1時間有効なクッキーとして設定
+  res.json(token);
+});
+
 router.get("/logout", (req, res) => {
-  req.logout(); // セッションからユーザーを削除
-  res.status(200).json({ message: "Logout Successful" });
+  res.clearCookie('authToken'); // トークンをクリア
+  // req.logout(function(err) {
+  //   if (err) {
+  //     // エラー処理
+  //     console.log(`logout:${err}`);
+  //     res.json({ message: err });
+  //   } else {
+  //     res.json({ message: "Logged out successfully" });
+  //   }
+  // });
+  res.json({ message: "Logged out successfully" })
 });
 
 router.get("/check-auth", (req, res) => {
-  if (req.isAuthenticated()) {
-    // 認証されている場合
-    res.status(200).json({ authenticated: true });
+  if (req.cookies.authToken !== undefined) {
+    console.log(`check-auth:${req.cookies.authToken}`);
+    res.json({ authenticated: true });
   } else {
-    // 認証されていない場合
-    res.status(200).json({ authenticated: false });
+    console.log(`check-auth:${req.cookies.authToken}`);
+    res.json({ authenticated: false });
   }
 });
 
