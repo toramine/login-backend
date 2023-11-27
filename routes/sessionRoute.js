@@ -14,7 +14,7 @@ const {
 require("dotenv").config();
 
 function generateAuthToken(user) {
-  const token = jwt.sign({ id: user.id, username: user.username }, process.env.SECRET_KEY);
+  const token = jwt.sign({ id: user.id, username: user.username }, process.env.SECRET_KEY, { expiresIn: '1h' });
   return token;
 }
 
@@ -66,9 +66,8 @@ passport.deserializeUser(function(user, cb) {
 
 router.post("/login", passport.authenticate("local"), (req, res) => {
   console.log(`authenticated:${req.isAuthenticated()}`);
-  // 認証成功時にトークンを生成し、クッキーに保存する
+  // 認証成功時にトークンを生成する
   const token = generateAuthToken(req.user);
-  res.cookie('authToken', token, { httpOnly: true, secure: true, maxAge: 3600000 }); // 1時間有効なクッキーとして設定
   res.json(token);
 });
 
