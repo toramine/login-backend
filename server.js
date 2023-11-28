@@ -1,11 +1,8 @@
 const express = require("express");
-const session = require("express-session");
 const helmet = require("helmet");
-const cors = require("cors");
 const { Sequelize } = require("sequelize");
 const sessionRoute = require("./routes/sessionRoute");
 const userRoute = require("./routes/userRoute");
-const passport = require("passport");
 const cookieParser = require('cookie-parser');
 require("dotenv").config();
 
@@ -31,23 +28,6 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-// Session setup
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    maxAge: 60 * 60 * 1000,
-    secure: false,
-    httpOnly: true,
-    sameSite: "strict",
-  },
-}));
-
-// Passport setup
-app.use(passport.initialize());
-app.use(passport.authenticate('session'));
-
 // Routes setup
 app.use("/sessionRoute", sessionRoute);
 app.use("/userRoute", userRoute);

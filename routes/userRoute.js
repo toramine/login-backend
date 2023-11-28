@@ -1,6 +1,5 @@
 // userRouter.js
 const express = require("express");
-const isAuthenticated = require("../isAuthenticated");
 const verifyToken = require("../verifyToken");
 
 const router = express.Router();
